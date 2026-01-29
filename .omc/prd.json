@@ -1,0 +1,173 @@
+{
+  "project": "Parallel Timer",
+  "branchName": "ralph/parallel-timer-mvp",
+  "description": "Kotlin + Jetpack Compose 멀티 타이머 앱 MVP - 권한 0개, 오프라인, endAtEpoch 기반 시간 계산",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Project Setup",
+      "description": "As a developer, I want to set up the Android project with Compose and DataStore dependencies so that I can start building the timer app.",
+      "acceptanceCriteria": [
+        "build.gradle.kts configured with Compose BOM 2024.02.00",
+        "kotlinx.serialization plugin and dependency added",
+        "DataStore preferences dependency added",
+        "minSdk=26, targetSdk=34, compileSdk=34",
+        "AndroidManifest.xml has no permissions",
+        "AppContainer and ViewModelFactory created",
+        "ParallelTimerApp application class configured",
+        "./gradlew assembleDebug succeeds"
+      ],
+      "priority": 1,
+      "passes": false
+    },
+    {
+      "id": "US-002",
+      "title": "Domain Models",
+      "description": "As a developer, I want to define the core data models so that the timer logic can be implemented.",
+      "acceptanceCriteria": [
+        "TimerItem data class with @Serializable annotation",
+        "TimerState enum (Idle, Running, Paused, Done) with @Serializable",
+        "TimerColor enum with 6 color options",
+        "TimerPreset with defaults (5/10/25 min)",
+        "TimerDisplayItem wrapper class defined",
+        "All model classes compile without errors"
+      ],
+      "priority": 2,
+      "passes": false
+    },
+    {
+      "id": "US-003",
+      "title": "Data Persistence Layer",
+      "description": "As a user, I want my timers to persist across app restarts so that I don't lose my timer configurations.",
+      "acceptanceCriteria": [
+        "TimerSerializer with kotlinx.serialization JSON encode/decode",
+        "TimerDataStore with preferencesDataStore",
+        "TimerRepository interface with CRUD operations",
+        "TimerRepositoryImpl with DataStore integration",
+        "Save/load cycle works correctly",
+        "Graceful degradation on JSON corruption"
+      ],
+      "priority": 3,
+      "passes": false
+    },
+    {
+      "id": "US-004",
+      "title": "Timer ViewModel with Epoch-Based Timing",
+      "description": "As a user, I want my running timers to accurately reflect elapsed time even after app restart so that I can trust the timer accuracy.",
+      "acceptanceCriteria": [
+        "TimerListViewModel with StateFlow",
+        "recalculateRunningTimers() on init using endAtEpochMs",
+        "startTimer() sets endAtEpochMs = now + remaining",
+        "pauseTimer() captures remaining from endAtEpoch - now",
+        "resetTimer() returns to initial duration",
+        "UI tick (500ms) refreshes display without state mutation",
+        "displayTimers StateFlow provides TimerDisplayItem list",
+        "Timer reaching zero transitions to Done state"
+      ],
+      "priority": 4,
+      "passes": false
+    },
+    {
+      "id": "US-005",
+      "title": "Theme and Base UI Components",
+      "description": "As a user, I want the app to look good in both light and dark modes so that I can use it comfortably.",
+      "acceptanceCriteria": [
+        "Material 3 Theme.kt with dark mode support",
+        "Color.kt with timer color definitions",
+        "Type.kt with typography",
+        "Components adapt to system dark mode",
+        "Touch targets meet 48dp minimum"
+      ],
+      "priority": 5,
+      "passes": false
+    },
+    {
+      "id": "US-006",
+      "title": "Timer Card Component",
+      "description": "As a user, I want to see each timer as a card with name, color, and remaining time so that I can identify and monitor my timers.",
+      "acceptanceCriteria": [
+        "TimerCard shows label, color indicator, remaining time (MM:SS)",
+        "Different visual states for Idle, Running, Paused, Done",
+        "TimerControls with context-appropriate buttons",
+        "Idle: Start button",
+        "Running: Pause and Reset buttons",
+        "Paused: Resume and Reset buttons",
+        "Done: Reset and Delete buttons"
+      ],
+      "priority": 6,
+      "passes": false
+    },
+    {
+      "id": "US-007",
+      "title": "Preset Chips Component",
+      "description": "As a user, I want to quickly create timers using preset durations so that I can start timing with one tap.",
+      "acceptanceCriteria": [
+        "PresetChips shows 5min, 10min, 25min chips",
+        "Tapping chip creates timer with that duration",
+        "Created timer has default name and color"
+      ],
+      "priority": 7,
+      "passes": false
+    },
+    {
+      "id": "US-008",
+      "title": "Add Timer Dialog",
+      "description": "As a user, I want to create custom timers with name, color, and duration so that I can personalize my timers.",
+      "acceptanceCriteria": [
+        "AddTimerDialog as BottomSheet",
+        "Label input with 20 char limit",
+        "ColorPicker with 6 color options",
+        "DurationPicker for MM:SS input",
+        "Cancel and Create buttons",
+        "Dialog state survives configuration changes"
+      ],
+      "priority": 8,
+      "passes": false
+    },
+    {
+      "id": "US-009",
+      "title": "Home Screen Integration",
+      "description": "As a user, I want to see all my timers on one screen so that I can manage multiple timers simultaneously.",
+      "acceptanceCriteria": [
+        "HomeScreen with toolbar, preset chips, timer list, FAB",
+        "LazyColumn for timer cards with smooth scrolling",
+        "FAB opens AddTimerDialog",
+        "Empty state when no timers exist",
+        "Screen works with 0, 1, 10+ timers",
+        "Screen rotation preserves state"
+      ],
+      "priority": 9,
+      "passes": false
+    },
+    {
+      "id": "US-010",
+      "title": "Timer Actions and Edge Cases",
+      "description": "As a user, I want timer actions to work reliably so that I can trust the app behavior.",
+      "acceptanceCriteria": [
+        "Start/Pause/Reset/Delete actions wired to ViewModel",
+        "Rapid start/pause clicks handled gracefully",
+        "Timer completion while app backgrounded updates on resume",
+        "Long timer durations (hours) work correctly",
+        "Labels with special characters/emoji work",
+        "Delete with confirmation or undo"
+      ],
+      "priority": 10,
+      "passes": false
+    },
+    {
+      "id": "US-011",
+      "title": "Final Polish and QA",
+      "description": "As a user, I want a stable, crash-free app so that I can rely on it for timing tasks.",
+      "acceptanceCriteria": [
+        "All 7 functional acceptance criteria pass (AC-1 to AC-7)",
+        "All 7 non-functional criteria pass (NF-1 to NF-7)",
+        "10 concurrent timers with no frame drops",
+        "Zero crashes in all tested paths",
+        "Accessibility content descriptions on buttons",
+        "./gradlew assembleDebug succeeds with no warnings"
+      ],
+      "priority": 11,
+      "passes": false
+    }
+  ]
+}
