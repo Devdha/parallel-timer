@@ -1,6 +1,7 @@
 package com.example.paralleltimer.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,12 +12,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -39,17 +42,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.paralleltimer.R
+import com.example.paralleltimer.domain.model.DefaultGroups
+import com.example.paralleltimer.domain.model.GroupIcon
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTimerDialog(
     onDismiss: () -> Unit,
-    onCreate: (label: String, colorIndex: Int, durationMs: Long) -> Unit,
+    onCreate: (label: String, colorIndex: Int, durationMs: Long, groupId: String?) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var label by rememberSaveable { mutableStateOf("") }
     var colorIndex by rememberSaveable { mutableIntStateOf(0) }
     var durationMs by rememberSaveable { mutableLongStateOf(5 * 60 * 1000L) }
+    var selectedGroupId by rememberSaveable { mutableStateOf<String?>(null) }
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -157,6 +163,45 @@ fun AddTimerDialog(
 
             Spacer(Modifier.height(20.dp))
 
+            // Group selection section
+            Text(
+                text = stringResource(R.string.select_group),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // No group option
+                FilterChip(
+                    selected = selectedGroupId == null,
+                    onClick = { selectedGroupId = null },
+                    label = { Text(stringResource(R.string.no_group)) }
+                )
+
+                // Group options
+                DefaultGroups.defaults.forEach { group ->
+                    FilterChip(
+                        selected = selectedGroupId == group.id,
+                        onClick = { selectedGroupId = group.id },
+                        label = { Text(getGroupDisplayName(group.id)) }
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(24.dp))
+
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            )
+
+            Spacer(Modifier.height(20.dp))
+
             // Duration picker section
             Text(
                 text = stringResource(R.string.duration),
@@ -187,7 +232,7 @@ fun AddTimerDialog(
                 }
                 Button(
                     onClick = {
-                        onCreate(label, colorIndex, durationMs)
+                        onCreate(label, colorIndex, durationMs, selectedGroupId)
                         onDismiss()
                     },
                     modifier = Modifier
@@ -207,5 +252,17 @@ fun AddTimerDialog(
 
             Spacer(Modifier.height(16.dp))
         }
+    }
+}
+
+@Composable
+private fun getGroupDisplayName(groupId: String): String {
+    return when (groupId) {
+        "cooking" -> stringResource(R.string.group_cooking)
+        "exercise" -> stringResource(R.string.group_exercise)
+        "study" -> stringResource(R.string.group_study)
+        "work" -> stringResource(R.string.group_work)
+        "break" -> stringResource(R.string.group_break)
+        else -> groupId
     }
 }

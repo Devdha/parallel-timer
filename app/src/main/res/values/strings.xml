@@ -75,4 +75,30 @@
     <string name="notification_channel_description">Notifications when timers complete</string>
     <string name="timer_complete">Timer Complete</string>
     <string name="timer_finished">%s has finished!</string>
+
+    <!-- Timer Groups -->
+    <string name="all_timers">All Timers</string>
+    <string name="group_cooking">Cooking</string>
+    <string name="group_exercise">Exercise</string>
+    <string name="group_study">Study</string>
+    <string name="group_work">Work</string>
+    <string name="group_break">Break</string>
+    <string name="select_group">Select Group</string>
+    <string name="no_group">No Group</string>
+
+    <!-- Statistics -->
+    <string name="statistics">Statistics</string>
+    <string name="total_completed">Total Completed</string>
+    <string name="total_time">Total Time</string>
+    <string name="today">Today</string>
+    <string name="this_week">This Week</string>
+    <string name="this_month">This Month</string>
+    <string name="timers_completed">%d timers</string>
+    <string name="current_streak">Current Streak</string>
+    <string name="longest_streak">Longest Streak</string>
+    <string name="days_streak">%d days</string>
+    <string name="no_history">No history yet</string>
+    <string name="hours_format">%dh %dm</string>
+    <string name="minutes_format">%dm</string>
+    <string name="by_group">By Group</string>
 </resources>

@@ -75,4 +75,30 @@
     <string name="notification_channel_description">타이머 완료시 알림</string>
     <string name="timer_complete">타이머 완료</string>
     <string name="timer_finished">%s 완료!</string>
+
+    <!-- Timer Groups -->
+    <string name="all_timers">전체 타이머</string>
+    <string name="group_cooking">요리</string>
+    <string name="group_exercise">운동</string>
+    <string name="group_study">공부</string>
+    <string name="group_work">업무</string>
+    <string name="group_break">휴식</string>
+    <string name="select_group">그룹 선택</string>
+    <string name="no_group">그룹 없음</string>
+
+    <!-- Statistics -->
+    <string name="statistics">통계</string>
+    <string name="total_completed">총 완료</string>
+    <string name="total_time">총 시간</string>
+    <string name="today">오늘</string>
+    <string name="this_week">이번 주</string>
+    <string name="this_month">이번 달</string>
+    <string name="timers_completed">%d개 완료</string>
+    <string name="current_streak">현재 연속</string>
+    <string name="longest_streak">최장 연속</string>
+    <string name="days_streak">%d일</string>
+    <string name="no_history">아직 기록이 없습니다</string>
+    <string name="hours_format">%d시간 %d분</string>
+    <string name="minutes_format">%d분</string>
+    <string name="by_group">그룹별</string>
 </resources>

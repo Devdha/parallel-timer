@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.Analytics
 import androidx.compose.material.icons.outlined.HourglassEmpty
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material.icons.outlined.Timer
@@ -31,6 +32,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
@@ -62,7 +64,9 @@ import com.example.paralleltimer.domain.model.TimerPreset
 import com.example.paralleltimer.ui.components.AddPresetDialog
 import com.example.paralleltimer.ui.components.AddTimerDialog
 import com.example.paralleltimer.ui.components.EditTimerDialog
+import com.example.paralleltimer.ui.components.GroupFilterChips
 import com.example.paralleltimer.ui.components.PresetChips
+import com.example.paralleltimer.ui.components.StatisticsBottomSheet
 import com.example.paralleltimer.ui.components.TimerCard
 import com.example.paralleltimer.ui.viewmodel.TimerAction
 import com.example.paralleltimer.ui.viewmodel.TimerUiState
@@ -145,11 +149,43 @@ fun HomeScreen(
                     .padding(horizontal = 16.dp)
                     .padding(top = 8.dp)
             ) {
-                SectionHeader(
-                    icon = Icons.Outlined.PlayCircle,
-                    title = stringResource(R.string.quick_start),
-                    subtitle = stringResource(R.string.tap_to_create)
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.PlayCircle,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.quick_start),
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                fontWeight = FontWeight.SemiBold
+                            ),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(Modifier.weight(1f))
+                        Text(
+                            text = stringResource(R.string.tap_to_create),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    IconButton(onClick = { onAction(TimerAction.ToggleStatistics) }) {
+                        Icon(
+                            imageVector = Icons.Outlined.Analytics,
+                            contentDescription = stringResource(R.string.statistics)
+                        )
+                    }
+                }
 
                 Spacer(Modifier.height(8.dp))
 
@@ -165,7 +201,17 @@ fun HomeScreen(
                 )
             }
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(16.dp))
+
+            // Group Filter Section
+            GroupFilterChips(
+                groups = uiState.groups,
+                selectedGroupId = uiState.selectedGroupId,
+                onGroupSelected = { groupId -> onAction(TimerAction.SelectGroup(groupId)) },
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+
+            Spacer(Modifier.height(8.dp))
 
             // Timer list section
             if (uiState.timers.isNotEmpty()) {
@@ -238,8 +284,8 @@ fun HomeScreen(
     if (showAddDialog) {
         AddTimerDialog(
             onDismiss = { showAddDialog = false },
-            onCreate = { label, colorIndex, durationMs ->
-                onAction(TimerAction.CreateCustom(label, colorIndex, durationMs))
+            onCreate = { label, colorIndex, durationMs, groupId ->
+                onAction(TimerAction.CreateCustom(label, colorIndex, durationMs, groupId))
             }
         )
     }
@@ -284,11 +330,20 @@ fun HomeScreen(
         EditTimerDialog(
             initialLabel = timerDisplay.timer.label,
             initialColorIndex = timerDisplay.timer.colorIndex,
+            initialGroupId = timerDisplay.timer.groupId,
             onDismiss = { timerToEdit = null },
-            onSave = { label, colorIndex ->
-                onAction(TimerAction.Edit(timerDisplay.timer.id, label, colorIndex))
+            onSave = { label, colorIndex, groupId ->
+                onAction(TimerAction.Edit(timerDisplay.timer.id, label, colorIndex, groupId))
                 timerToEdit = null
             }
+        )
+    }
+
+    // Statistics Bottom Sheet
+    if (uiState.showStatistics) {
+        StatisticsBottomSheet(
+            statistics = uiState.statistics,
+            onDismiss = { onAction(TimerAction.ToggleStatistics) }
         )
     }
 }

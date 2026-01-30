@@ -1,6 +1,7 @@
 package com.example.paralleltimer.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,12 +12,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -38,18 +41,21 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.paralleltimer.R
+import com.example.paralleltimer.domain.model.DefaultGroups
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditTimerDialog(
     initialLabel: String,
     initialColorIndex: Int,
+    initialGroupId: String?,
     onDismiss: () -> Unit,
-    onSave: (label: String, colorIndex: Int) -> Unit
+    onSave: (label: String, colorIndex: Int, groupId: String?) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var label by rememberSaveable { mutableStateOf(initialLabel) }
     var colorIndex by rememberSaveable { mutableIntStateOf(initialColorIndex) }
+    var selectedGroupId by rememberSaveable { mutableStateOf(initialGroupId) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -146,6 +152,43 @@ fun EditTimerDialog(
                 onColorSelected = { colorIndex = it }
             )
 
+            Spacer(Modifier.height(24.dp))
+
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            )
+
+            Spacer(Modifier.height(20.dp))
+
+            // Group Selection
+            Text(
+                text = stringResource(R.string.select_group),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    selected = selectedGroupId == null,
+                    onClick = { selectedGroupId = null },
+                    label = { Text(stringResource(R.string.no_group)) }
+                )
+
+                DefaultGroups.defaults.forEach { group ->
+                    FilterChip(
+                        selected = selectedGroupId == group.id,
+                        onClick = { selectedGroupId = group.id },
+                        label = { Text(getGroupDisplayName(group.id)) }
+                    )
+                }
+            }
+
             Spacer(Modifier.height(32.dp))
 
             // Buttons
@@ -163,7 +206,7 @@ fun EditTimerDialog(
                     Text(stringResource(R.string.cancel))
                 }
                 Button(
-                    onClick = { onSave(label, colorIndex) },
+                    onClick = { onSave(label, colorIndex, selectedGroupId) },
                     modifier = Modifier
                         .weight(1f)
                         .height(52.dp),
@@ -181,5 +224,17 @@ fun EditTimerDialog(
 
             Spacer(Modifier.height(16.dp))
         }
+    }
+}
+
+@Composable
+private fun getGroupDisplayName(groupId: String): String {
+    return when (groupId) {
+        "cooking" -> stringResource(R.string.group_cooking)
+        "exercise" -> stringResource(R.string.group_exercise)
+        "study" -> stringResource(R.string.group_study)
+        "work" -> stringResource(R.string.group_work)
+        "break" -> stringResource(R.string.group_break)
+        else -> groupId
     }
 }

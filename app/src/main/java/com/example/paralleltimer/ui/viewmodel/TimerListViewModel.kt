@@ -3,10 +3,14 @@ package com.example.paralleltimer.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.paralleltimer.data.repository.TimerRepository
+import com.example.paralleltimer.domain.model.DefaultGroups
 import com.example.paralleltimer.domain.model.TimerDisplayItem
+import com.example.paralleltimer.domain.model.TimerGroup
+import com.example.paralleltimer.domain.model.TimerHistory
 import com.example.paralleltimer.domain.model.TimerItem
 import com.example.paralleltimer.domain.model.TimerPreset
 import com.example.paralleltimer.domain.model.TimerState
+import com.example.paralleltimer.domain.model.TimerStatistics
 import com.example.paralleltimer.notification.TimerAlarmScheduler
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,17 +29,37 @@ class TimerListViewModel(
     private val _tickTrigger = MutableStateFlow(System.currentTimeMillis())
     private val _isLoading = MutableStateFlow(true)
     private val _snackbarMessage = MutableStateFlow<String?>(null)
+    private val _selectedGroupId = MutableStateFlow<String?>(null)
+    private val _showStatistics = MutableStateFlow(false)
     private var recentlyDeletedTimer: TimerItem? = null
 
     val uiState: StateFlow<TimerUiState> = combine(
         repository.timers,
         repository.presets,
+        repository.groups,
+        repository.getStatistics(),
         _tickTrigger,
-        _isLoading,
-        _snackbarMessage
-    ) { timers, presets, now, isLoading, snackbarMessage ->
+        _selectedGroupId,
+        _showStatistics
+    ) { flows ->
+        val timers = flows[0] as List<TimerItem>
+        val presets = flows[1] as List<TimerPreset>
+        val groups = flows[2] as List<TimerGroup>
+        val statistics = flows[3] as TimerStatistics
+        val now = flows[4] as Long
+        val selectedGroupId = flows[5] as String?
+        val showStatistics = flows[6] as Boolean
+
         val recalculatedTimers = recalculateRunningTimers(timers, now)
-        val displayTimers = recalculatedTimers.map { timer ->
+
+        // Filter timers based on selected group
+        val filteredTimers = if (selectedGroupId == null) {
+            recalculatedTimers
+        } else {
+            recalculatedTimers.filter { it.groupId == selectedGroupId }
+        }
+
+        val displayTimers = filteredTimers.map { timer ->
             val displayRemaining = when (timer.state) {
                 TimerState.Running -> {
                     ((timer.endAtEpochMs ?: now) - now).coerceAtLeast(0)
@@ -47,8 +71,12 @@ class TimerListViewModel(
         TimerUiState(
             timers = displayTimers,
             presets = presets,
-            isLoading = isLoading,
-            snackbarMessage = snackbarMessage
+            isLoading = _isLoading.value,
+            snackbarMessage = _snackbarMessage.value,
+            groups = groups,
+            selectedGroupId = selectedGroupId,
+            statistics = statistics,
+            showStatistics = showStatistics
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TimerUiState())
 
@@ -96,6 +124,15 @@ class TimerListViewModel(
                         endAtEpochMs = null
                     )
                 )
+                // Record to history
+                repository.addHistoryEntry(
+                    TimerHistory(
+                        timerLabel = timer.label,
+                        groupId = timer.groupId,
+                        colorIndex = timer.colorIndex,
+                        durationMs = timer.durationMs
+                    )
+                )
             }
         }
     }
@@ -125,9 +162,13 @@ class TimerListViewModel(
                 is TimerAction.Reset -> resetTimer(action.id)
                 is TimerAction.Delete -> deleteTimer(action.id)
                 is TimerAction.UndoDelete -> undoDelete()
-                is TimerAction.Edit -> editTimer(action.id, action.label, action.colorIndex)
+                is TimerAction.Edit -> editTimer(action.id, action.label, action.colorIndex, action.groupId)
                 is TimerAction.CreateFromPreset -> createFromPreset(action.durationMs, action.label)
-                is TimerAction.CreateCustom -> createCustomTimer(action.label, action.colorIndex, action.durationMs)
+                is TimerAction.CreateCustom -> createCustomTimer(action.label, action.colorIndex, action.durationMs, action.groupId)
+                is TimerAction.SelectGroup -> _selectedGroupId.value = action.groupId
+                is TimerAction.AddGroup -> repository.addGroup(action.group)
+                is TimerAction.DeleteGroup -> repository.deleteGroup(action.groupId)
+                is TimerAction.ToggleStatistics -> _showStatistics.value = !_showStatistics.value
             }
         }
     }
@@ -212,12 +253,13 @@ class TimerListViewModel(
         }
     }
 
-    private suspend fun editTimer(id: String, label: String, colorIndex: Int) {
+    private suspend fun editTimer(id: String, label: String, colorIndex: Int, groupId: String? = null) {
         val timer = getTimer(id) ?: return
         repository.updateTimer(
             timer.copy(
                 label = label.take(20),
-                colorIndex = colorIndex.coerceIn(0, 5)
+                colorIndex = colorIndex.coerceIn(0, 5),
+                groupId = groupId
             )
         )
     }
@@ -231,12 +273,13 @@ class TimerListViewModel(
         repository.addTimer(timer)
     }
 
-    private suspend fun createCustomTimer(label: String, colorIndex: Int, durationMs: Long) {
+    private suspend fun createCustomTimer(label: String, colorIndex: Int, durationMs: Long, groupId: String? = null) {
         val timer = TimerItem(
             label = label.take(20),
             colorIndex = colorIndex.coerceIn(0, 5),
             durationMs = durationMs,
-            remainingMs = durationMs
+            remainingMs = durationMs,
+            groupId = groupId
         )
         repository.addTimer(timer)
     }

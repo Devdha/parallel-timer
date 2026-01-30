@@ -8,6 +8,8 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.paralleltimer.domain.model.TimerItem
 import com.example.paralleltimer.domain.model.TimerPreset
+import com.example.paralleltimer.domain.model.TimerGroup
+import com.example.paralleltimer.domain.model.TimerHistory
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.encodeToString
@@ -18,6 +20,8 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 class TimerDataStore(private val context: Context) {
     private val TIMERS_KEY = stringPreferencesKey("timers_json")
     private val PRESETS_KEY = stringPreferencesKey("presets_json")
+    private val GROUPS_KEY = stringPreferencesKey("groups_json")
+    private val HISTORY_KEY = stringPreferencesKey("history_json")
 
     private val json = Json {
         ignoreUnknownKeys = true
@@ -44,6 +48,34 @@ class TimerDataStore(private val context: Context) {
             }
         }
 
+    val groupsFlow: Flow<List<TimerGroup>> = context.dataStore.data
+        .map { prefs ->
+            val jsonStr = prefs[GROUPS_KEY]
+            if (jsonStr == null) {
+                emptyList()
+            } else {
+                try {
+                    json.decodeFromString<List<TimerGroup>>(jsonStr)
+                } catch (e: Exception) {
+                    emptyList()
+                }
+            }
+        }
+
+    val historyFlow: Flow<List<TimerHistory>> = context.dataStore.data
+        .map { prefs ->
+            val jsonStr = prefs[HISTORY_KEY]
+            if (jsonStr == null) {
+                emptyList()
+            } else {
+                try {
+                    json.decodeFromString<List<TimerHistory>>(jsonStr)
+                } catch (e: Exception) {
+                    emptyList()
+                }
+            }
+        }
+
     suspend fun saveTimers(timers: List<TimerItem>) {
         context.dataStore.edit { prefs ->
             prefs[TIMERS_KEY] = TimerSerializer.serialize(timers)
@@ -53,6 +85,18 @@ class TimerDataStore(private val context: Context) {
     suspend fun savePresets(presets: List<TimerPreset>) {
         context.dataStore.edit { prefs ->
             prefs[PRESETS_KEY] = json.encodeToString(presets)
+        }
+    }
+
+    suspend fun saveGroups(groups: List<TimerGroup>) {
+        context.dataStore.edit { prefs ->
+            prefs[GROUPS_KEY] = json.encodeToString(groups)
+        }
+    }
+
+    suspend fun saveHistory(history: List<TimerHistory>) {
+        context.dataStore.edit { prefs ->
+            prefs[HISTORY_KEY] = json.encodeToString(history)
         }
     }
 }
