@@ -7,6 +7,7 @@ import com.example.paralleltimer.domain.model.TimerDisplayItem
 import com.example.paralleltimer.domain.model.TimerItem
 import com.example.paralleltimer.domain.model.TimerPreset
 import com.example.paralleltimer.domain.model.TimerState
+import com.example.paralleltimer.notification.TimerAlarmScheduler
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,18 +18,22 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class TimerListViewModel(
-    private val repository: TimerRepository
+    private val repository: TimerRepository,
+    private val alarmScheduler: TimerAlarmScheduler
 ) : ViewModel() {
 
     private val _tickTrigger = MutableStateFlow(System.currentTimeMillis())
     private val _isLoading = MutableStateFlow(true)
+    private val _snackbarMessage = MutableStateFlow<String?>(null)
+    private var recentlyDeletedTimer: TimerItem? = null
 
     val uiState: StateFlow<TimerUiState> = combine(
         repository.timers,
         repository.presets,
         _tickTrigger,
-        _isLoading
-    ) { timers, presets, now, isLoading ->
+        _isLoading,
+        _snackbarMessage
+    ) { timers, presets, now, isLoading, snackbarMessage ->
         val recalculatedTimers = recalculateRunningTimers(timers, now)
         val displayTimers = recalculatedTimers.map { timer ->
             val displayRemaining = when (timer.state) {
@@ -39,7 +44,12 @@ class TimerListViewModel(
             }
             TimerDisplayItem(timer, displayRemaining)
         }
-        TimerUiState(timers = displayTimers, presets = presets, isLoading = isLoading)
+        TimerUiState(
+            timers = displayTimers,
+            presets = presets,
+            isLoading = isLoading,
+            snackbarMessage = snackbarMessage
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TimerUiState())
 
     init {
@@ -114,11 +124,16 @@ class TimerListViewModel(
                 is TimerAction.Pause -> pauseTimer(action.id)
                 is TimerAction.Reset -> resetTimer(action.id)
                 is TimerAction.Delete -> deleteTimer(action.id)
+                is TimerAction.UndoDelete -> undoDelete()
                 is TimerAction.Edit -> editTimer(action.id, action.label, action.colorIndex)
                 is TimerAction.CreateFromPreset -> createFromPreset(action.durationMs, action.label)
                 is TimerAction.CreateCustom -> createCustomTimer(action.label, action.colorIndex, action.durationMs)
             }
         }
+    }
+
+    fun clearSnackbar() {
+        _snackbarMessage.value = null
     }
 
     fun addPreset(label: String, durationMs: Long) {
@@ -137,12 +152,12 @@ class TimerListViewModel(
         val timer = getTimer(id) ?: return
         val now = System.currentTimeMillis()
         val endAt = now + timer.remainingMs
-        repository.updateTimer(
-            timer.copy(
-                state = TimerState.Running,
-                endAtEpochMs = endAt
-            )
+        val updatedTimer = timer.copy(
+            state = TimerState.Running,
+            endAtEpochMs = endAt
         )
+        repository.updateTimer(updatedTimer)
+        alarmScheduler.scheduleAlarm(updatedTimer)
     }
 
     private suspend fun pauseTimer(id: String) {
@@ -156,6 +171,7 @@ class TimerListViewModel(
                 endAtEpochMs = null
             )
         )
+        alarmScheduler.cancelAlarm(id)
     }
 
     private suspend fun resetTimer(id: String) {
@@ -167,10 +183,33 @@ class TimerListViewModel(
                 endAtEpochMs = null
             )
         )
+        alarmScheduler.cancelAlarm(id)
     }
 
     private suspend fun deleteTimer(id: String) {
+        val timer = getTimer(id) ?: return
+        recentlyDeletedTimer = timer
+        alarmScheduler.cancelAlarm(id)
         repository.deleteTimer(id)
+        // Just pass the label - UI will format the message with localized string
+        _snackbarMessage.value = timer.label
+    }
+
+    private suspend fun undoDelete() {
+        recentlyDeletedTimer?.let { timer ->
+            // Restore as Paused if it was Running, so user can manually resume
+            val restoredTimer = if (timer.state == TimerState.Running) {
+                timer.copy(
+                    state = TimerState.Paused,
+                    endAtEpochMs = null
+                )
+            } else {
+                timer
+            }
+            repository.addTimer(restoredTimer)
+            recentlyDeletedTimer = null
+            _snackbarMessage.value = null
+        }
     }
 
     private suspend fun editTimer(id: String, label: String, colorIndex: Int) {

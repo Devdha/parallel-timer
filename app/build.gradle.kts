@@ -10,7 +10,7 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.paralleltimer"
+        applicationId = "com.donghun.paralleltimer"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
@@ -19,10 +19,25 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            // TODO: Add actual signing credentials
+            // storeFile = file("path/to/keystore.jks")
+            // storePassword = "store_password"
+            // keyAlias = "key_alias"
+            // keyPassword = "key_password"
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            // signingConfig = signingConfigs.getByName("release")
         }
     }
 

@@ -21,9 +21,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.example.paralleltimer.R
 import com.example.paralleltimer.domain.model.TimerState
 
 @Composable
@@ -42,21 +44,23 @@ fun TimerControls(
     ) {
         when (state) {
             TimerState.Idle -> {
+                val startTimerDesc = stringResource(R.string.start_timer)
+                val deleteTimerDesc = stringResource(R.string.delete_timer)
                 FilledTonalButton(
                     onClick = onStart,
                     modifier = Modifier
                         .weight(1f)
                         .height(48.dp)
-                        .semantics { contentDescription = "Start timer" }
+                        .semantics { contentDescription = startTimerDesc }
                 ) {
                     Icon(Icons.Default.PlayArrow, contentDescription = null)
                     Spacer(Modifier.width(4.dp))
-                    Text("Start")
+                    Text(stringResource(R.string.start))
                 }
                 // Delete button for Idle state
                 IconButton(
                     onClick = onDelete,
-                    modifier = Modifier.semantics { contentDescription = "Delete timer" },
+                    modifier = Modifier.semantics { contentDescription = deleteTimerDesc },
                     colors = IconButtonDefaults.iconButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
                     )
@@ -65,29 +69,32 @@ fun TimerControls(
                 }
             }
             TimerState.Running -> {
+                val pauseTimerDesc = stringResource(R.string.pause_timer)
+                val resetTimerDesc = stringResource(R.string.reset_timer)
+                val deleteTimerDesc = stringResource(R.string.delete_timer)
                 FilledTonalButton(
                     onClick = onPause,
                     modifier = Modifier
                         .weight(1f)
                         .height(48.dp)
-                        .semantics { contentDescription = "Pause timer" }
+                        .semantics { contentDescription = pauseTimerDesc }
                 ) {
                     Icon(Icons.Default.Pause, contentDescription = null)
                     Spacer(Modifier.width(4.dp))
-                    Text("Pause")
+                    Text(stringResource(R.string.pause))
                 }
                 OutlinedButton(
                     onClick = onReset,
                     modifier = Modifier
                         .height(48.dp)
-                        .semantics { contentDescription = "Reset timer" }
+                        .semantics { contentDescription = resetTimerDesc }
                 ) {
                     Icon(Icons.Default.Refresh, contentDescription = null)
                 }
                 // Delete button for Running state
                 IconButton(
                     onClick = onDelete,
-                    modifier = Modifier.semantics { contentDescription = "Delete timer" },
+                    modifier = Modifier.semantics { contentDescription = deleteTimerDesc },
                     colors = IconButtonDefaults.iconButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
                     )
@@ -96,29 +103,32 @@ fun TimerControls(
                 }
             }
             TimerState.Paused -> {
+                val resumeTimerDesc = stringResource(R.string.resume_timer)
+                val resetTimerDesc = stringResource(R.string.reset_timer)
+                val deleteTimerDesc = stringResource(R.string.delete_timer)
                 FilledTonalButton(
                     onClick = onStart,
                     modifier = Modifier
                         .weight(1f)
                         .height(48.dp)
-                        .semantics { contentDescription = "Resume timer" }
+                        .semantics { contentDescription = resumeTimerDesc }
                 ) {
                     Icon(Icons.Default.PlayArrow, contentDescription = null)
                     Spacer(Modifier.width(4.dp))
-                    Text("Resume")
+                    Text(stringResource(R.string.resume))
                 }
                 OutlinedButton(
                     onClick = onReset,
                     modifier = Modifier
                         .height(48.dp)
-                        .semantics { contentDescription = "Reset timer" }
+                        .semantics { contentDescription = resetTimerDesc }
                 ) {
                     Icon(Icons.Default.Refresh, contentDescription = null)
                 }
                 // Delete button for Paused state
                 IconButton(
                     onClick = onDelete,
-                    modifier = Modifier.semantics { contentDescription = "Delete timer" },
+                    modifier = Modifier.semantics { contentDescription = deleteTimerDesc },
                     colors = IconButtonDefaults.iconButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
                     )
@@ -127,22 +137,24 @@ fun TimerControls(
                 }
             }
             TimerState.Done -> {
+                val resetTimerDesc = stringResource(R.string.reset_timer)
+                val deleteTimerDesc = stringResource(R.string.delete_timer)
                 FilledTonalButton(
                     onClick = onReset,
                     modifier = Modifier
                         .weight(1f)
                         .height(48.dp)
-                        .semantics { contentDescription = "Reset timer" }
+                        .semantics { contentDescription = resetTimerDesc }
                 ) {
                     Icon(Icons.Default.Refresh, contentDescription = null)
                     Spacer(Modifier.width(4.dp))
-                    Text("Reset")
+                    Text(stringResource(R.string.start))
                 }
                 OutlinedButton(
                     onClick = onDelete,
                     modifier = Modifier
                         .height(48.dp)
-                        .semantics { contentDescription = "Delete timer" },
+                        .semantics { contentDescription = deleteTimerDesc },
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
                     )

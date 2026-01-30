@@ -1,0 +1,47 @@
+Parallel Timer lets you run as many timers as you need at the same time. Perfect for cooking, workouts, studying, or managing multiple tasks.
+
+KEY FEATURES
+
+Run Multiple Timers
+Create and run unlimited timers simultaneously. No more limitations on how many countdowns you can track at once.
+
+Quick Start Presets
+Launch timers instantly with your favorite durations. Create custom presets like 5 min, 15 min, or 30 min for one-tap timer creation.
+
+Custom Timer Creation
+Set any duration in minutes and seconds. Give your timers names to remember what each one is for.
+
+Color Coding
+Choose from vibrant colors to visually distinguish your timers at a glance. Perfect for cooking multiple dishes or managing different activities.
+
+Smart Notifications
+Get notified instantly when a timer finishes with sound and vibration. Never miss a completed timer even when your phone is in another room.
+
+Undo Delete
+Accidentally deleted a timer? Undo it immediately with a single tap. No more lost progress.
+
+Dark Mode Support
+Comfortable viewing in any lighting condition with full dark mode support throughout the app.
+
+Bilingual Interface
+Switch between English and Korean. Your preferred language is automatically detected.
+
+PERMISSIONS
+
+This app requires the following permissions:
+- POST_NOTIFICATIONS: To notify you when timers complete
+- SCHEDULE_EXACT_ALARM: To trigger timers at the exact time
+- VIBRATE: For timer completion vibration feedback
+
+PRIVACY
+
+Parallel Timer does not collect, use, or share any of your personal data. All timer data is stored locally on your device. No internet connection is required.
+
+REQUIREMENTS
+
+- Android 8.0 (API 26) or higher
+- Approximately 10 MB of storage space
+
+SUPPORT
+
+Having issues or have suggestions? Feel free to reach out with feedback on how we can improve Parallel Timer.
